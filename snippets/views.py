@@ -1,3 +1,79 @@
-from django.shortcuts import render
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
 
-# Create your views here.
+from . import models
+from . import serializers
+
+
+class JSONResponse(HttpResponse):
+
+    """
+    콘텐츠를 JSON으로 변환한 후 HttpResponse 형태로 반환.
+    """
+
+    def __init__(self, data, **kwargs):
+        content = JSONRenderer().render(data)
+        kwargs["content_type"] = "application/json"
+
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+
+@csrf_exempt
+def snippet_list(request):
+
+    """
+    코드 조각을 모두 보여주거나 새 코드 조각을 만듭니다.
+    """
+
+    if request.method == "GET":
+        snippets = models.Snippet.objects.all()
+        serializer = serializers.SnippetSerializer(snippets, many=True)
+
+        return JSONResponse(serializer.data)
+
+    elif request.method == "POST":
+        data = JSONParser().parse(request)
+        serializer = serializers.SnippetSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return JSONResponse(serializer.data, status=201)
+
+        return JSONResponse(serializer.errors, status=400)
+
+
+@csrf_exempt
+def snippet_detail(request, pk):
+
+    """
+    코드 조각 조회, 업데이트, 삭제
+    """
+
+    try:
+        snippet = models.Snippet.objects.get(pk=pk)
+    except models.Snippet.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == "GET":
+        serializer = serializers.SnippetSerializer(snippet)
+
+        return JSONResponse(serializer.data)
+
+    elif request.method == "PUT":
+        data = JSONParser().parse(request)
+        serializer = serializers.SnippetSerializer(snippet, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return JSONResponse(serializer.data)
+
+        return JSONResponse(serializer.errors, status=400)
+
+    elif request.method == "DELETE":
+        snippet.delete()
+
+        return HttpResponse(status=204)
