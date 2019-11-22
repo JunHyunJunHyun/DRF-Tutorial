@@ -1,13 +1,11 @@
 from django.http import Http404
-from rest_framework import mixins, generics
+from rest_framework import generics
 
 from . import models
 from . import serializers
 
 
-class SnippetList(
-    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView
-):
+class SnippetList(generics.ListCreateAPIView):
 
     """
     코드 조각을 모두 보여주거나 새 코드 조각을 만듭니다.
@@ -16,19 +14,8 @@ class SnippetList(
     queryset = models.Snippet.objects.all()
     serializer_class = serializers.SnippetSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-class SnippetDetail(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
-):
+class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
 
     """
     코드 조각 조회, 업데이트, 삭제
@@ -36,12 +23,3 @@ class SnippetDetail(
 
     queryset = models.Snippet.objects.all()
     serializer_class = serializers.SnippetSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, format=None):
-        return self.destroy(request, *args, **kwargs)
