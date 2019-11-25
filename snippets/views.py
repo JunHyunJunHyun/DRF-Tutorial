@@ -50,10 +50,15 @@ class UserDetail(generics.RetrieveAPIView):
 
 @api_view(("GET",))
 def api_root(request, format=None):
+
+    """
+    그냥 API 시작 포인트에서 엔드 포인트들 설명해주는 역할인듯
+    """
+
     return Response(
         {
-            "users": reverse("users-list", request=request, format=format),
-            "snippets": reverse("snippets-list", request=request, format=format),
+            "users": reverse("user-list", request=request, format=format),
+            "snippets": reverse("snippet-list", request=request, format=format),
         }
     )
 
